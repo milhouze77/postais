@@ -137,7 +137,7 @@
       <div>
         <div class="kicker">Santa Catarina · Litoral</div>
         <h1>Acervo Postal<br><span class="em">de Itajaí</span></h1>
-        <p class="subtitle">Catálogo de cartões-postais históricos da cidade e do vale do rio Itajaí-Açu.</p>
+        <p class="subtitle">Catálogo de cartões-postais históricos da cidade de Itajaí</p>
       </div>
       <div class="postmark"><span>Itajaí<br>SC<br>·Brasil·</span></div>
     </div>
@@ -170,10 +170,7 @@
   <div class="grid" id="grade"></div>
 
   <footer>
-    <b>Fonte dos dados:</b> a lista de postais vem de uma planilha do Google Sheets publicada como CSV (configurada em <code>URL_PLANILHA</code>, no início do código).
-    Colunas esperadas: <code>id · titulo · tema · ano · ano_texto · bairro · editora · autor · cor · descricao · imagem_frente · imagem_verso</code>.
-    Para adicionar um cartão, basta uma nova linha — o site atualiza sozinho.
-    <div class="copyright">© Leandro Vinicius Hahn 2026</div>
+        <div class="copyright"> Copyright by Leandro Vinicius Hahn 2026 ©</div>
   </footer>
 
 </div>
@@ -242,14 +239,6 @@ const ACERVO_EXEMPLO = [
 
 let ACERVO = [];
 
-/* período derivado do ano */
-function periodoDe(a){
-  if(!a) return "Sem data";
-  if(a<=1889) return "Império (até 1889)";
-  if(a<=1930) return "Primeira República (1889–1930)";
-  if(a<=1945) return "Era Vargas (1930–1945)";
-  if(a<=1964) return "República de 1946 (1945–1964)";
-  return "Após 1964";
 }
 
 /* converte uma linha da planilha num registro */
@@ -269,7 +258,7 @@ function normalizar(r, i){
     imagem_frente: (r.imagem_frente||'').trim(),
     imagem_verso: (r.imagem_verso||'').trim(),
     decada: Math.floor(ano/10)*10,
-    periodo: periodoDe(ano)
+    periodo: (r.periodo||'').trim(),
   };
 }
 
@@ -290,14 +279,6 @@ function resolveImg(val, tituloFallback, ano){
   if(/1drv\.ms|onedrive\.live\.com|onedrive\.com|sharepoint\.com/i.test(val)) return oneDriveDireto(val);
   if(/^https?:\/\//i.test(val)) return val;
   return CONFIG.PASTA_IMAGENS + val;
-}
-/* converte um link de compartilhamento do OneDrive em link de imagem direta */
-function oneDriveDireto(url){
-  try{
-    const b64 = btoa(unescape(encodeURIComponent(url)));
-    const enc = 'u!' + b64.replace(/=+$/,'').replace(/\//g,'_').replace(/\+/g,'-');
-    return 'https://api.onedrive.com/v1.0/shares/' + enc + '/root/content';
-  }catch(e){ return url; }
 }
 /* se a imagem não carregar, mostra o marcador no lugar de quebrar */
 function imgErro(el){ if(el.dataset.fb) return; el.dataset.fb='1'; el.src = placeholder('Imagem indisponível',''); }
