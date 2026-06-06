@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Acervo Postal · Itajaí</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,900;1,9..144,500&family=Spectral:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<style>
+  :root{
+    --paper:#efe6d4;--paper-2:#e6d9c0;--paper-3:#dccdb0;
+    --ink:#2c2114;--ink-soft:#5e4d38;
+    --ocean:#1f5063;--ocean-deep:#123945;
+    --postmark:#9a3b2e;--gold:#a9803c;--line:#c9b896;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:'Spectral',Georgia,serif;color:var(--ink);background-color:var(--paper);
+    background-image:
+      radial-gradient(circle at 20% 10%, rgba(169,128,60,.10), transparent 55%),
+      radial-gradient(circle at 85% 80%, rgba(31,80,99,.10), transparent 55%);
+    min-height:100vh;position:relative;
+  }
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.5;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.045'/%3E%3C/svg%3E");
+    mix-blend-mode:multiply;
+  }
+  .wrap{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:0 22px}
+
+  header.masthead{position:sticky;top:0;z-index:30;background:rgba(239,230,212,.97);backdrop-filter:blur(6px);padding:34px 0 20px;border-bottom:3px double var(--ink)}
+  .mast-row{display:flex;justify-content:space-between;align-items:flex-start;gap:24px}
+  .kicker{font-size:.72rem;letter-spacing:.42em;text-transform:uppercase;color:var(--postmark);font-weight:600;margin-bottom:10px}
+  h1{font-family:'Fraunces',serif;font-weight:900;line-height:.92;font-size:clamp(2.5rem,7vw,4.6rem);color:var(--ink);letter-spacing:-.01em}
+  h1 .em{font-style:italic;font-weight:500;color:var(--ocean)}
+  .subtitle{margin-top:14px;font-size:1.02rem;font-style:italic;color:var(--ink-soft);max-width:34ch}
+  .postmark{flex:0 0 auto;width:108px;height:108px;border-radius:50%;border:2px solid var(--postmark);color:var(--postmark);display:grid;place-items:center;text-align:center;transform:rotate(-9deg);opacity:.85;position:relative}
+  .postmark::before{content:"";position:absolute;inset:7px;border:1px dashed var(--postmark);border-radius:50%}
+  .postmark span{font-family:'Fraunces',serif;font-size:.62rem;letter-spacing:.22em;text-transform:uppercase;line-height:1.5;font-weight:600}
+  @media(max-width:640px){.postmark{display:none}}
+
+  .controls{border-bottom:1px solid var(--line);padding:16px 0;margin-bottom:26px}
+  .search{position:relative;width:100%;margin-bottom:12px}
+  .search input{width:100%;font-family:'Spectral',serif;font-size:1rem;color:var(--ink);padding:11px 14px 11px 40px;background:var(--paper);border:1.5px solid var(--ink);border-radius:2px;outline:none}
+  .search input:focus{border-color:var(--ocean);box-shadow:0 0 0 3px rgba(31,80,99,.15)}
+  .search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:18px;height:18px;stroke:var(--ink-soft)}
+  .filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+  .fld{display:flex;flex-direction:column;gap:3px}
+  .fld label{font-size:.64rem;letter-spacing:.18em;text-transform:uppercase;color:var(--ocean);padding-left:2px}
+  select{font-family:'Spectral',serif;font-size:.92rem;color:var(--ink);cursor:pointer;width:100%;padding:9px 30px 9px 12px;background:var(--paper);border:1.5px solid var(--ink);border-radius:2px;outline:none;appearance:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%232c2114' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 10px center}
+  select:focus{border-color:var(--ocean)}
+  select.active{border-color:var(--postmark);background-color:rgba(154,59,46,.07)}
+  .range{display:flex;align-items:center;gap:6px}
+  .range input{width:100%;min-width:0;font-family:'Spectral',serif;font-size:.92rem;color:var(--ink);text-align:center;padding:9px 6px;background:var(--paper);border:1.5px solid var(--ink);border-radius:2px;outline:none;-moz-appearance:textfield}
+  .range input::-webkit-outer-spin-button,.range input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  .range input:focus{border-color:var(--ocean)}
+  .range input.active{border-color:var(--postmark);background-color:rgba(154,59,46,.07)}
+  .range span{color:var(--ink-soft);flex:0 0 auto}
+  .bar2{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:12px;flex-wrap:wrap}
+  .count{font-size:.85rem;color:var(--ink-soft);font-style:italic}
+  .count b{font-style:normal;font-weight:600;color:var(--ink)}
+  .btn-clear{font-family:'Spectral',serif;font-size:.9rem;color:var(--postmark);background:none;border:none;cursor:pointer;padding:4px 0;text-decoration:underline;text-underline-offset:3px}
+
+  .note{border-radius:3px;padding:12px 16px;margin-bottom:26px;font-size:.9rem;font-style:italic;line-height:1.55}
+  .note.exemplo{background:rgba(169,128,60,.12);border:1px dashed var(--gold);color:var(--ink-soft)}
+  .note.planilha{background:rgba(31,80,99,.10);border:1px solid var(--ocean);color:var(--ocean-deep)}
+  .note.erro{background:rgba(154,59,46,.10);border:1px solid var(--postmark);color:var(--postmark)}
+  .note b{font-style:normal}
+  .note.hidden{display:none}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(248px,1fr));gap:30px 26px;padding-bottom:60px}
+  .card{background:var(--paper);border:1px solid var(--line);padding:12px 12px 16px;box-shadow:2px 4px 0 rgba(44,33,20,.10);cursor:pointer;transition:transform .22s ease,box-shadow .22s ease;position:relative;animation:rise .5s ease both}
+  @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  .card:hover{transform:translateY(-5px) rotate(-.6deg);box-shadow:5px 9px 0 rgba(44,33,20,.16)}
+  .card .frame{position:relative;aspect-ratio:7/5;overflow:hidden;background:var(--paper-3);border:1px solid var(--line)}
+  .card .frame img{width:100%;height:100%;object-fit:cover;display:block}
+  .card .deco{position:absolute;top:8px;right:8px;width:26px;height:30px;border:1px solid rgba(154,59,46,.55);background:rgba(154,59,46,.06);transform:rotate(6deg);display:grid;place-items:center}
+  .card .deco i{font-style:normal;font-family:'Fraunces',serif;font-size:.5rem;color:var(--postmark)}
+  .card .tema{font-size:.64rem;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-top:11px;font-weight:600}
+  .card h3{font-family:'Fraunces',serif;font-weight:600;font-size:1.16rem;margin-top:3px;line-height:1.12}
+  .card .meta{display:flex;justify-content:space-between;align-items:baseline;margin-top:6px;gap:8px}
+  .card .bairro{font-size:.86rem;color:var(--ink-soft);font-style:italic}
+  .tag{flex:0 0 auto;font-family:'Fraunces',serif;font-size:.72rem;font-weight:600;color:var(--ocean);border:1px solid var(--ocean);border-radius:2px;padding:2px 7px;white-space:nowrap}
+  .empty{grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--ink-soft);font-style:italic;font-size:1.1rem}
+
+  .modal-bg{position:fixed;inset:0;z-index:100;background:rgba(20,15,8,.72);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;padding:24px}
+  .modal-bg.open{display:flex;animation:fade .25s ease}
+  @keyframes fade{from{opacity:0}to{opacity:1}}
+  .modal{background:var(--paper);max-width:880px;width:100%;max-height:90vh;overflow-y:auto;border:1px solid var(--ink);box-shadow:0 24px 60px rgba(0,0,0,.4);position:relative}
+  .modal-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;padding:26px 28px 18px;border-bottom:1px solid var(--line)}
+  .modal-head .tema{font-size:.66rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:5px}
+  .modal-head h2{font-family:'Fraunces',serif;font-weight:900;font-size:1.9rem;line-height:1.05}
+  .modal-head .sub{font-style:italic;color:var(--ink-soft);margin-top:6px}
+  .close{flex:0 0 auto;background:none;border:1.5px solid var(--ink);width:38px;height:38px;border-radius:50%;cursor:pointer;font-size:1.2rem;color:var(--ink);line-height:1}
+  .close:hover{background:var(--ink);color:var(--paper)}
+  .modal-imgs{display:grid;grid-template-columns:1fr 1fr;gap:18px;padding:24px 28px}
+  @media(max-width:600px){.modal-imgs{grid-template-columns:1fr}}
+  .modal-imgs figure{border:1px solid var(--line);background:var(--paper-3);padding:8px}
+  .modal-imgs img{width:100%;display:block;cursor:zoom-in}
+  .modal-imgs figcaption{font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-soft);text-align:center;margin-top:8px}
+  .modal-body{padding:4px 28px 30px}
+  .modal-body p.desc{font-size:1.05rem;line-height:1.65;margin-bottom:20px}
+  .facts{border-top:1px solid var(--line)}
+  .facts div{display:flex;gap:14px;padding:10px 0;border-bottom:1px solid var(--line)}
+  .facts dt{flex:0 0 130px;font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;color:var(--ocean);padding-top:3px}
+  .facts dd{flex:1;font-size:1rem}
+
+  /* ===== Lightbox (ampliação) ===== */
+  .lightbox{position:fixed;inset:0;z-index:200;background:rgba(15,11,6,.95);display:none;flex-direction:column}
+  .lightbox.open{display:flex;animation:fade .2s ease}
+  .lb-toolbar{display:flex;gap:10px;justify-content:flex-end;padding:14px 16px}
+  .lb-toolbar button{width:44px;height:44px;border-radius:50%;border:1.5px solid rgba(239,230,212,.55);background:rgba(0,0,0,.25);color:var(--paper);font-size:1.35rem;cursor:pointer;display:grid;place-items:center;line-height:1;font-family:'Spectral',serif}
+  .lb-toolbar button:hover{background:rgba(239,230,212,.16)}
+  .lb-toolbar .lb-close{font-size:1.6rem}
+  .lb-stage{flex:1;overflow:hidden;display:flex;align-items:center;justify-content:center;touch-action:none;cursor:grab}
+  .lb-stage.dragging{cursor:grabbing}
+  .lb-stage img{max-width:92vw;max-height:80vh;user-select:none;-webkit-user-drag:none;transform-origin:center center;transition:transform .07s linear;will-change:transform;box-shadow:0 12px 44px rgba(0,0,0,.55);background:var(--paper)}
+  .lb-hint{position:absolute;bottom:16px;left:0;right:0;text-align:center;color:rgba(239,230,212,.65);font-size:.8rem;font-style:italic;pointer-events:none;transition:opacity .5s ease;padding:0 16px}
+  .lb-hint.gone{opacity:0}
+
+  footer{border-top:3px double var(--ink);padding:30px 0 50px;font-size:.9rem;color:var(--ink-soft);line-height:1.7}
+  footer b{color:var(--ink)}
+  footer code{background:var(--paper-2);padding:1px 6px;border-radius:2px;font-family:ui-monospace,monospace;font-size:.82em}
+  .copyright{text-align:center;font-size:.74rem;letter-spacing:.06em;color:var(--ink-soft);opacity:.7}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="masthead">
+    <div class="mast-row">
+      <div>
+        <div class="kicker">Santa Catarina · Litoral</div>
+        <h1>Acervo Postal<br><span class="em">de Itajaí</span></h1>
+        <p class="subtitle">Catálogo de cartões-postais históricos da cidade e do vale do rio Itajaí-Açu.</p>
+      </div>
+      <div class="postmark"><span>Itajaí<br>SC<br>·Brasil·</span></div>
+    </div>
+  </header>
+
+  <div class="controls">
+    <div class="wrap" style="padding:0">
+      <label class="search">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        <input id="q" type="search" placeholder="Buscar na descrição, título, local, autor…" autocomplete="off">
+      </label>
+      <div class="filters">
+        <div class="fld"><label>Tema</label><select id="fTema" data-key="tema"><option value="">Todos</option></select></div>
+        <div class="fld"><label>Período</label><select id="fPeriodo" data-key="periodo"><option value="">Todos</option></select></div>
+        <div class="fld"><label>Ano (de–até)</label><div class="range"><input id="anoDe" type="number" inputmode="numeric" placeholder="de" aria-label="Ano inicial"><span>–</span><input id="anoAte" type="number" inputmode="numeric" placeholder="até" aria-label="Ano final"></div></div>
+        <div class="fld"><label>Bairro</label><select id="fBairro" data-key="bairro"><option value="">Todos</option></select></div>
+        <div class="fld"><label>Editora</label><select id="fEditora" data-key="editora"><option value="">Todas</option></select></div>
+        <div class="fld"><label>Autor</label><select id="fAutor" data-key="autor"><option value="">Todos</option></select></div>
+        <div class="fld"><label>Cor</label><select id="fCor" data-key="cor"><option value="">Todas</option></select></div>
+      </div>
+      <div class="bar2">
+        <div class="count" id="contador"></div>
+        <button class="btn-clear" id="limpar">limpar filtros</button>
+      </div>
+    </div>
+  </div>
+
+  <p class="note exemplo" id="aviso"></p>
+
+  <div class="grid" id="grade"></div>
+
+  <footer>
+    <div class="copyright">© Leandro Vinicius Hahn 2026</div>
+  </footer>
+
+</div>
+
+<div class="modal-bg" id="modalBg">
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="modal-head">
+      <div>
+        <div class="tema" id="mTema"></div>
+        <h2 id="mTitulo"></h2>
+        <div class="sub" id="mSub"></div>
+      </div>
+      <button class="close" id="mClose" aria-label="Fechar">×</button>
+    </div>
+    <div class="modal-imgs">
+      <figure><img id="mImgF" alt=""><figcaption>Frente</figcaption></figure>
+      <figure><img id="mImgV" alt=""><figcaption>Verso</figcaption></figure>
+    </div>
+    <div class="modal-body">
+      <p class="desc" id="mDesc"></p>
+      <dl class="facts" id="mFacts"></dl>
+    </div>
+  </div>
+</div>
+
+<!-- Lightbox: ampliação de imagem -->
+<div class="lightbox" id="lightbox" aria-hidden="true">
+  <div class="lb-toolbar">
+    <button id="lbOut" aria-label="Diminuir zoom">&minus;</button>
+    <button id="lbReset" aria-label="Redefinir zoom">&#8634;</button>
+    <button id="lbIn" aria-label="Aumentar zoom">+</button>
+    <button id="lbClose" class="lb-close" aria-label="Fechar">&times;</button>
+  </div>
+  <div class="lb-stage" id="lbStage"><img id="lbImg" alt="Imagem ampliada do cartão-postal" draggable="false"></div>
+  <div class="lb-hint" id="lbHint">Role ou use + / − para ampliar · arraste para mover · toque duplo aproxima</div>
+</div>
+
+<script>
+/* =======================================================================
+   CONFIGURAÇÃO  —  edite só esta parte
+   ----------------------------------------------------------------------
+   URL_PLANILHA : cole aqui o link CSV da sua planilha publicada no Google
+                  Sheets (Arquivo > Compartilhar > Publicar na web > CSV).
+                  Deixe vazio ("") para usar os dados de exemplo.
+   PASTA_IMAGENS: pasta onde ficam as imagens. Se na planilha você colocar
+                  só o nome do arquivo (ex.: "001-frente.jpg"), o site busca
+                  em PASTA_IMAGENS. Se colocar um link http completo, usa o link.
+   ======================================================================= */
+const CONFIG = {
+  URL_PLANILHA : "https://docs.google.com/spreadsheets/d/1qOTQv2TYRmDE0mWXXnVKbTEjUiXa9VeENtPEQcP2cA0/gviz/tq?tqx=out:csv",
+  PASTA_IMAGENS: "imagens/"
+};
+
+/* ---- dados de exemplo (usados enquanto não há planilha) ---- */
+const ACERVO_EXEMPLO = [
+  { id:"001", titulo:"Porto de Itajaí", tema:"Porto e navegação", bairro:"Centro", ano:1925, ano_texto:"c. 1925", editora:"Editora Exemplo A", autor:"Não identificado", cor:"Preto e branco", descricao:"Vista (exemplo) do cais e das embarcações no porto. Dado fictício.", imagem_frente:"", imagem_verso:"" },
+  { id:"002", titulo:"Igreja Matriz", tema:"Religioso", bairro:"Centro", ano:1912, ano_texto:"c. 1912", editora:"Editora Exemplo A", autor:"Photographia Exemplo", cor:"Sépia", descricao:"Fachada da igreja matriz vista da praça (exemplo).", imagem_frente:"", imagem_verso:"" },
+  { id:"003", titulo:"Praia de Cabeçudas", tema:"Praias e balneários", bairro:"Cabeçudas", ano:1955, ano_texto:"c. 1955", editora:"Cartões Exemplo C", autor:"Estúdio Exemplo", cor:"Colorido (colorizado)", descricao:"Enseada e banhistas na praia de Cabeçudas (exemplo).", imagem_frente:"", imagem_verso:"" },
+  { id:"004", titulo:"Rua Hercílio Luz", tema:"Vias e urbanismo", bairro:"Centro", ano:1935, ano_texto:"c. 1935", editora:"Editora Exemplo B", autor:"Não identificado", cor:"Preto e branco", descricao:"Movimento na rua comercial com bondes e pedestres (exemplo).", imagem_frente:"", imagem_verso:"" },
+  { id:"005", titulo:"Foz do Itajaí-Açu", tema:"Rio e foz", bairro:"Fazenda", ano:1948, ano_texto:"c. 1948", editora:"Cartões Exemplo C", autor:"Photographia Exemplo", cor:"Sépia", descricao:"Encontro do rio com o mar e os molhes da barra (exemplo).", imagem_frente:"", imagem_verso:"" },
+  { id:"006", titulo:"Ponte Metálica", tema:"Pontes e obras", bairro:"Centro", ano:1915, ano_texto:"c. 1915", editora:"Editora Exemplo A", autor:"Estúdio Exemplo", cor:"Preto e branco", descricao:"Antiga travessia sobre o rio (exemplo).", imagem_frente:"", imagem_verso:"" },
+  { id:"007", titulo:"Morro da Cruz", tema:"Vistas panorâmicas", bairro:"São João", ano:1962, ano_texto:"c. 1962", editora:"Cartões Exemplo C", autor:"Estúdio Exemplo", cor:"Colorido (colorizado)", descricao:"Vista panorâmica da cidade a partir do alto (exemplo).", imagem_frente:"", imagem_verso:"" },
+  { id:"008", titulo:"Avenida Beira-Rio", tema:"Vias e urbanismo", bairro:"Centro", ano:1965, ano_texto:"c. 1965", editora:"Editora Exemplo B", autor:"Não identificado", cor:"Colorido (colorizado)", descricao:"Avenida à margem do rio com automóveis da época (exemplo).", imagem_frente:"", imagem_verso:"" },
+  { id:"009", titulo:"Colônia de Pescadores", tema:"Pesca", bairro:"Fazenda", ano:1942, ano_texto:"c. 1942", editora:"Editora Exemplo B", autor:"Photographia Exemplo", cor:"Sépia", descricao:"Barcos e redes da pesca artesanal (exemplo).", imagem_frente:"", imagem_verso:"" },
+];
+
+let ACERVO = [];
+
+/* período derivado do ano */
+function periodoDe(a){
+  if(!a) return "Sem data";
+  if(a<=1889) return "Império (até 1889)";
+  if(a<=1930) return "Primeira República (1889–1930)";
+  if(a<=1945) return "Era Vargas (1930–1945)";
+  if(a<=1964) return "República de 1946 (1945–1964)";
+  return "Após 1964";
+}
+
+/* converte uma linha da planilha num registro */
+function normalizar(r, i){
+  const ano = parseInt(String(r.ano).replace(/\D/g,''),10) || 0;
+  return {
+    id: (r.id||'').trim() || String(i+1).padStart(3,'0'),
+    titulo: (r.titulo||'').trim() || 'Sem título',
+    tema: (r.tema||'').trim() || 'Sem tema',
+    bairro: (r.bairro||'').trim() || '—',
+    ano,
+    ano_texto: (r.ano_texto||'').trim() || (ano ? 'c. '+ano : '—'),
+    editora: (r.editora||'').trim(),
+    autor: (r.autor||'').trim(),
+    cor: (r.cor||'').trim(),
+    descricao: (r.descricao||'').trim(),
+    imagem_frente: (r.imagem_frente||'').trim(),
+    imagem_verso: (r.imagem_verso||'').trim(),
+    decada: Math.floor(ano/10)*10,
+    periodo: (r.periodo||'').trim() || periodoDe(ano)
+  };
+}
+
+/* resolução de imagem: link completo, nome de arquivo na pasta, ou marcador */
+function placeholder(titulo, ano){
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='560' height='400'>
+    <defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='#d8c39a'/><stop offset='1' stop-color='#b9956a'/></linearGradient></defs>
+    <rect width='560' height='400' fill='url(#g)'/>
+    <rect x='16' y='16' width='528' height='368' fill='none' stroke='#7a5a35' stroke-width='2' opacity='.6'/>
+    <text x='280' y='195' font-family='Georgia,serif' font-size='30' fill='#4a3418' text-anchor='middle' font-style='italic'>${(titulo||'').replace(/&/g,'e')}</text>
+    <text x='280' y='235' font-family='Georgia,serif' font-size='16' fill='#6b4f2c' text-anchor='middle' letter-spacing='3'>ITAJAÍ · ${ano||''}</text>
+  </svg>`;
+  return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+}
+function resolveImg(val, tituloFallback, ano){
+  if(!val) return placeholder(tituloFallback, ano);
+  val = val.trim();
+  if(/1drv\.ms|onedrive\.live\.com|onedrive\.com|sharepoint\.com/i.test(val)) return oneDriveDireto(val);
+  if(/^https?:\/\//i.test(val)) return val;
+  return CONFIG.PASTA_IMAGENS + val;
+}
+/* converte um link de compartilhamento do OneDrive em link de imagem direta */
+function oneDriveDireto(url){
+  try{
+    const b64 = btoa(unescape(encodeURIComponent(url)));
+    const enc = 'u!' + b64.replace(/=+$/,'').replace(/\//g,'_').replace(/\+/g,'-');
+    return 'https://api.onedrive.com/v1.0/shares/' + enc + '/root/content';
+  }catch(e){ return url; }
+}
+/* se a imagem não carregar, mostra o marcador no lugar de quebrar */
+function imgErro(el){ if(el.dataset.fb) return; el.dataset.fb='1'; el.src = placeholder('Imagem indisponível',''); }
+const imgFrente = p => resolveImg(p.imagem_frente, p.titulo, p.ano_texto);
+const imgVerso  = p => resolveImg(p.imagem_verso, 'Verso', p.ano_texto);
+
+/* elementos */
+const selects = ['fTema','fPeriodo','fBairro','fEditora','fAutor','fCor'].map(id=>document.getElementById(id));
+const grade = document.getElementById('grade');
+const contador = document.getElementById('contador');
+const q = document.getElementById('q');
+const anoDe = document.getElementById('anoDe');
+const anoAte = document.getElementById('anoAte');
+const aviso = document.getElementById('aviso');
+const uniq = (key,num)=>[...new Set(ACERVO.map(p=>p[key]).filter(v=>v!=='' && v!=null))].sort((a,b)=> num ? a-b : String(a).localeCompare(String(b),'pt'));
+function fill(sel, values){ values.forEach(v=> sel.insertAdjacentHTML('beforeend', `<option value="${v}">${v}</option>`)); }
+
+function render(){
+  const termo = q.value.trim().toLowerCase();
+  const de  = anoDe.value  !== '' ? Number(anoDe.value)  : null;
+  const ate = anoAte.value !== '' ? Number(anoAte.value) : null;
+  anoDe.classList.toggle('active', de!==null);
+  anoAte.classList.toggle('active', ate!==null);
+  const itens = ACERVO.filter(p=>{
+    for(const sel of selects){
+      const k = sel.dataset.key, v = sel.value;
+      sel.classList.toggle('active', !!v);
+      if(v && String(p[k]) !== v) return false;
+    }
+    if(de!==null  && p.ano < de)  return false;
+    if(ate!==null && p.ano > ate) return false;
+    const texto = [p.titulo,p.bairro,p.tema,p.editora,p.autor,p.descricao,p.ano_texto].join(' ').toLowerCase();
+    return !termo || texto.includes(termo);
+  });
+  contador.innerHTML = `<b>${itens.length}</b> ${itens.length===1?'cartão':'cartões'} no acervo`;
+  grade.innerHTML = itens.length ? itens.map((p,i)=>`
+    <article class="card" data-id="${p.id}" style="animation-delay:${i*40}ms">
+      <div class="frame"><img src="${imgFrente(p)}" alt="Cartão-postal: ${p.titulo}" loading="lazy" onerror="imgErro(this)"><div class="deco"><i>${p.decada||''}</i></div></div>
+      <div class="tema">${p.tema}</div>
+      <h3>${p.titulo}</h3>
+      <div class="meta"><span class="bairro">${p.bairro}</span><span class="tag">${p.ano_texto}</span></div>
+    </article>`).join('')
+    : `<p class="empty">Nenhum cartão encontrado com esses filtros.</p>`;
+}
+
+/* modal */
+const modalBg = document.getElementById('modalBg');
+function abrir(p){
+  document.getElementById('mTema').textContent = p.tema;
+  document.getElementById('mTitulo').textContent = p.titulo;
+  document.getElementById('mSub').textContent = `${p.bairro} · ${p.ano_texto}`;
+  const mf=document.getElementById('mImgF'), mv=document.getElementById('mImgV');
+  mf.dataset.fb=''; mv.dataset.fb=''; mf.onerror=()=>imgErro(mf); mv.onerror=()=>imgErro(mv);
+  mf.src = imgFrente(p);
+  mv.src = imgVerso(p);
+  document.getElementById('mDesc').textContent = p.descricao;
+  document.getElementById('mFacts').innerHTML = `
+    <div><dt>Tema</dt><dd>${p.tema}</dd></div>
+    <div><dt>Local</dt><dd>${p.bairro}, Itajaí — SC</dd></div>
+    <div><dt>Data estimada</dt><dd>${p.ano_texto}${p.decada?' · década de '+p.decada:''}</dd></div>
+    <div><dt>Período</dt><dd>${p.periodo}</dd></div>
+    <div><dt>Editora</dt><dd>${p.editora||'—'}</dd></div>
+    <div><dt>Autor</dt><dd>${p.autor||'—'}</dd></div>
+    <div><dt>Cor</dt><dd>${p.cor||'—'}</dd></div>
+    <div><dt>Referência</dt><dd>Nº ${p.id}</dd></div>`;
+  modalBg.classList.add('open');
+}
+const fechar = ()=> modalBg.classList.remove('open');
+grade.addEventListener('click', e=>{ const c=e.target.closest('.card'); if(c) abrir(ACERVO.find(p=>p.id===c.dataset.id)); });
+document.getElementById('mClose').addEventListener('click', fechar);
+modalBg.addEventListener('click', e=>{ if(e.target===modalBg) fechar(); });
+document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ if(document.getElementById('lightbox').classList.contains('open')) lbClose(); else fechar(); } });
+
+/* ---- ampliação de imagem (lightbox) ---- */
+const lb = document.getElementById('lightbox');
+const lbImg = document.getElementById('lbImg');
+const lbStage = document.getElementById('lbStage');
+const lbHint = document.getElementById('lbHint');
+let lbScale=1, lbX=0, lbY=0; const LB_MIN=1, LB_MAX=6;
+function lbApply(){ lbImg.style.transform = `translate(${lbX}px,${lbY}px) scale(${lbScale})`; }
+function lbResetZoom(){ lbScale=1; lbX=0; lbY=0; lbApply(); }
+function lbOpen(src){ lbImg.src=src; lbResetZoom(); lb.classList.add('open'); lb.setAttribute('aria-hidden','false'); lbHint.classList.remove('gone'); setTimeout(()=>lbHint.classList.add('gone'),2800); }
+function lbClose(){ lb.classList.remove('open'); lb.setAttribute('aria-hidden','true'); }
+function lbZoomAt(factor, cx, cy){
+  const r=lbStage.getBoundingClientRect();
+  const ox=cx-r.left-r.width/2-lbX, oy=cy-r.top-r.height/2-lbY;
+  const ns=Math.min(LB_MAX,Math.max(LB_MIN,lbScale*factor)), ratio=ns/lbScale;
+  lbX-=ox*(ratio-1); lbY-=oy*(ratio-1); lbScale=ns;
+  if(lbScale<=1.001){ lbScale=1; lbX=0; lbY=0; }
+  lbApply();
+}
+lbStage.addEventListener('wheel', e=>{ e.preventDefault(); lbZoomAt(e.deltaY<0?1.15:1/1.15, e.clientX, e.clientY); }, {passive:false});
+lbStage.addEventListener('dblclick', e=>{ e.preventDefault(); lbScale>1 ? lbResetZoom() : lbZoomAt(2.5, e.clientX, e.clientY); });
+document.getElementById('lbIn').onclick    = ()=>{ const r=lbStage.getBoundingClientRect(); lbZoomAt(1.4, r.left+r.width/2, r.top+r.height/2); };
+document.getElementById('lbOut').onclick   = ()=>{ const r=lbStage.getBoundingClientRect(); lbZoomAt(1/1.4, r.left+r.width/2, r.top+r.height/2); };
+document.getElementById('lbReset').onclick = lbResetZoom;
+document.getElementById('lbClose').onclick = lbClose;
+/* arrastar (pan) e pinça — mouse e toque */
+const lbPts=new Map(); let lbDist0=0, lbScale0=1, lbPanX=0, lbPanY=0, lbTX0=0, lbTY0=0;
+lbStage.addEventListener('pointerdown', e=>{
+  lbStage.setPointerCapture(e.pointerId); lbPts.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(lbPts.size===1){ lbPanX=e.clientX; lbPanY=e.clientY; lbTX0=lbX; lbTY0=lbY; lbStage.classList.add('dragging'); }
+  else if(lbPts.size===2){ const p=[...lbPts.values()]; lbDist0=Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y); lbScale0=lbScale; }
+});
+lbStage.addEventListener('pointermove', e=>{
+  if(!lbPts.has(e.pointerId)) return; lbPts.set(e.pointerId,{x:e.clientX,y:e.clientY}); const p=[...lbPts.values()];
+  if(lbPts.size===2){ const d=Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y); lbZoomAt((lbScale0*(d/lbDist0))/lbScale, (p[0].x+p[1].x)/2, (p[0].y+p[1].y)/2); }
+  else if(lbPts.size===1 && lbScale>1){ lbX=lbTX0+(e.clientX-lbPanX); lbY=lbTY0+(e.clientY-lbPanY); lbApply(); }
+});
+function lbUp(e){ lbPts.delete(e.pointerId); if(lbPts.size<2) lbStage.classList.remove('dragging'); if(lbPts.size===1){ const p=[...lbPts.values()][0]; lbPanX=p.x; lbPanY=p.y; lbTX0=lbX; lbTY0=lbY; } }
+lbStage.addEventListener('pointerup', lbUp);
+lbStage.addEventListener('pointercancel', lbUp);
+/* abrir ao clicar nas imagens do detalhe */
+document.getElementById('mImgF').addEventListener('click', e=> lbOpen(e.currentTarget.src));
+document.getElementById('mImgV').addEventListener('click', e=> lbOpen(e.currentTarget.src));
+
+/* inicialização (depois de carregar os dados) */
+function iniciar(dados, fonte){
+  ACERVO = dados;
+  fill(document.getElementById('fTema'),    uniq('tema'));
+  fill(document.getElementById('fPeriodo'), uniq('periodo'));
+  fill(document.getElementById('fBairro'),  uniq('bairro'));
+  fill(document.getElementById('fEditora'), uniq('editora'));
+  fill(document.getElementById('fAutor'),   uniq('autor'));
+  fill(document.getElementById('fCor'),     uniq('cor'));
+  const anos = uniq('ano',true).filter(a=>a>0);
+  if(anos.length){ anoDe.placeholder = anos[0]; anoAte.placeholder = anos[anos.length-1]; anoDe.min=anoAte.min=anos[0]; anoDe.max=anoAte.max=anos[anos.length-1]; }
+
+  if(fonte==='planilha'){ aviso.className='note planilha'; aviso.innerHTML='<b>Dados carregados da planilha.</b> Edite a planilha do Google Sheets e o catálogo se atualiza em poucos minutos.'; }
+  else if(fonte==='erro'){ aviso.className='note hidden'; aviso.innerHTML=''; }
+  else { aviso.className='note exemplo'; aviso.innerHTML='<b>Modo de demonstração.</b> Os postais abaixo são exemplos fictícios. Configure <code>URL_PLANILHA</code> para usar sua planilha.'; }
+
+  [q,anoDe,anoAte,...selects].forEach(el=>el.addEventListener('input', render));
+  document.getElementById('limpar').addEventListener('click', ()=>{ q.value=''; anoDe.value=''; anoAte.value=''; selects.forEach(s=>s.value=''); render(); });
+  render();
+}
+
+/* carga */
+if(CONFIG.URL_PLANILHA && /^https?:\/\//i.test(CONFIG.URL_PLANILHA)){
+  Papa.parse(CONFIG.URL_PLANILHA, {
+    download:true, header:true, skipEmptyLines:true,
+    transformHeader:h=>h.trim().toLowerCase(),
+    complete: res=>{
+      const dados = (res.data||[]).filter(r=>r.titulo && String(r.titulo).trim()).map(normalizar);
+      dados.length ? iniciar(dados,'planilha') : iniciar(ACERVO_EXEMPLO.map(normalizar),'exemplo');
+    },
+    error: ()=> iniciar(ACERVO_EXEMPLO.map(normalizar),'erro')
+  });
+} else {
+  iniciar(ACERVO_EXEMPLO.map(normalizar),'exemplo');
+}
+</script>
+</body>
+</html>
